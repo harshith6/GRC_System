@@ -1,0 +1,53 @@
+version: '3.8'
+
+services:
+  # Backend Django Service
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: compliance-backend
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend:/app
+      - backend-data:/app/data
+    environment:
+      - DJANGO_SETTINGS_MODULE=compliance_api.settings
+      - PYTHONUNBUFFERED=1
+      - DEBUG=True
+    networks:
+      - compliance-network
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Frontend React Service
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: compliance-frontend
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+    networks:
+      - compliance-network
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:80"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+networks:
+  compliance-network:
+    driver: bridge
+
+volumes:
+  backend-data:
+    driver: local
