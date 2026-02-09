@@ -99,10 +99,13 @@ const ChecklistDetail = () => {
   const handleItemStatusChange = async (itemId, newStatus) => {
     try {
       await itemAPI.patch(itemId, { status: newStatus });
+      setSuccessMessage("Item status updated successfully!");
+      setTimeout(() => setSuccessMessage(null), 3000);
       fetchChecklist(); // Refresh
     } catch (err) {
       console.error("Error updating item:", err);
-      alert("Failed to update item");
+      setError("Failed to update item status");
+      setTimeout(() => setError(""), 3000);
     }
   };
 
