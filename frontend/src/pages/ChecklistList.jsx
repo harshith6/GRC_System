@@ -55,11 +55,14 @@ const ChecklistList = () => {
       await checklistAPI.delete(deleteConfirmModal.checklistId);
       setChecklists(checklists.filter(c => c.id !== deleteConfirmModal.checklistId));
       setDeleteConfirmModal({ isOpen: false, checklistId: null, checklistName: '' });
+      setError(''); // Clear any existing errors
       setSuccessMessage('Checklist deleted successfully!');
       setTimeout(() => setSuccessMessage(''), 3000);
     } catch (err) {
       console.error('Error deleting checklist:', err);
+      setSuccessMessage(''); // Clear any existing success messages
       setError('Failed to delete checklist');
+      setTimeout(() => setError(''), 3000);
       setDeleteConfirmModal({ isOpen: false, checklistId: null, checklistName: '' });
     }
   };
