@@ -92,40 +92,52 @@ class ChecklistViewSet(viewsets.ModelViewSet):
     
     @action(detail=True, methods=['get'], url_path='items')
     def items(self, request, pk=None):
-        
+        """
+        Get all items for a specific checklist.
+        """
         try:
             items = self.service.get_checklist_items(pk)
             serializer = ChecklistItemSerializer(items, many=True)
-            return Response(serializer.data)
+            return Response({
+                'success': True,
+                'count': len(items),
+                'items': serializer.data
+            }, status=status.HTTP_200_OK)
         except ValidationError as e:
-            return Response(
-                {'error': e.message},
-                status=status.HTTP_400_BAD_REQUEST
-            )
+            return Response({
+                'success': False,
+                'error': e.message
+            }, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
-            return Response(
-                {'error': str(e)},
-                status=status.HTTP_400_BAD_REQUEST
-            )
+            return Response({
+                'success': False,
+                'error': str(e)
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
     
     @action(detail=True, methods=['post'], url_path='add-item')
     def add_item(self, request, pk=None):
-       
+        """
+        Add a new item to a checklist.
+        """
         try:
             item_service = ChecklistItemService()
             item = item_service.create_item(pk, request.data)
             serializer = ChecklistItemSerializer(item)
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
+            return Response({
+                'success': True,
+                'item': serializer.data,
+                'message': 'Item added successfully'
+            }, status=status.HTTP_201_CREATED)
         except ValidationError as e:
-            return Response(
-                {'error': e.message},
-                status=status.HTTP_400_BAD_REQUEST
-            )
+            return Response({
+                'success': False,
+                'error': e.message
+            }, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
-            return Response(
-                {'error': str(e)},
-                status=status.HTTP_400_BAD_REQUEST
-            )
+            return Response({
+                'success': False,
+                'error': str(e)
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 class ChecklistItemViewSet(viewsets.ModelViewSet):
@@ -189,7 +201,9 @@ class ChecklistItemViewSet(viewsets.ModelViewSet):
     
     @action(detail=True, methods=['post'])
     def complete(self, request, pk=None):
-        
+        """
+        Mark a checklist item as completed.
+        """
         try:
             data = {'status': 'completed'}
             evidence_notes = request.data.get('evidence_notes')
@@ -198,17 +212,21 @@ class ChecklistItemViewSet(viewsets.ModelViewSet):
             
             item = self.service.update_item(pk, data)
             serializer = self.get_serializer(item)
-            return Response(serializer.data)
+            return Response({
+                'success': True,
+                'item': serializer.data,
+                'message': 'Item marked as completed'
+            }, status=status.HTTP_200_OK)
         except ValidationError as e:
-            return Response(
-                {'error': e.message},
-                status=status.HTTP_400_BAD_REQUEST
-            )
+            return Response({
+                'success': False,
+                'error': e.message
+            }, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
-            return Response(
-                {'error': str(e)},
-                status=status.HTTP_400_BAD_REQUEST
-            )
+            return Response({
+                'success': False,
+                'error': str(e)
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 class DashboardStatsView(APIView):
@@ -242,9 +260,12 @@ class DashboardStatsView(APIView):
             service = ChecklistService()
             stats = service.get_dashboard_stats(request.user)
             serializer = ChecklistStatsSerializer(stats)
-            return Response(serializer.data)
+            return Response({
+                'success': True,
+                'stats': serializer.data
+            }, status=status.HTTP_200_OK)
         except Exception as e:
-            return Response(
-                {'error': str(e)},
-                status=status.HTTP_400_BAD_REQUEST
-            )
+            return Response({
+                'success': False,
+                'error': str(e)
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

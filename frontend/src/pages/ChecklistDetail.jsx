@@ -23,6 +23,7 @@ const ChecklistDetail = () => {
     itemTitle: "",
   });
   const [deleteChecklistModal, setDeleteChecklistModal] = useState(false);
+  const [itemSearchTerm, setItemSearchTerm] = useState(''); // Search items
 
   // New item form data
   const [newItem, setNewItem] = useState({
@@ -205,6 +206,17 @@ const ChecklistDetail = () => {
       setDeleteChecklistModal(false);
     }
   };
+
+  // Filter items based on search term
+  const filteredItems = checklist?.items?.filter(item => {
+    if (!itemSearchTerm) return true;
+    const searchLower = itemSearchTerm.toLowerCase();
+    return (
+      item.title.toLowerCase().includes(searchLower) ||
+      (item.description && item.description.toLowerCase().includes(searchLower)) ||
+      (item.assigned_owner && item.assigned_owner.toLowerCase().includes(searchLower))
+    );
+  }) || [];
 
   if (loading) return <LoadingSpinner />;
   if (error) return <div className="p-8 text-red-600">{error}</div>;
@@ -514,9 +526,55 @@ const ChecklistDetail = () => {
       {/* Items list */}
       <div>
         <h2 className="text-2xl font-semibold text-gray-900 mb-4">Items</h2>
-        {checklist.items && checklist.items.length > 0 ? (
+        
+        {/* Items Search Bar */}
+        <div className="mb-4">
+          <div className="relative">
+            <svg
+              className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+              />
+            </svg>
+            <input
+              type="text"
+              placeholder="Search items by title, description, or assigned owner..."
+              className="input pl-10 w-full"
+              value={itemSearchTerm}
+              onChange={(e) => setItemSearchTerm(e.target.value)}
+            />
+            {itemSearchTerm && (
+              <button
+                onClick={() => setItemSearchTerm('')}
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+              >
+                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                  <path
+                    fillRule="evenodd"
+                    d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+              </button>
+            )}
+          </div>
+          {itemSearchTerm && (
+            <p className="text-sm text-gray-600 mt-2">
+              Found {filteredItems.length} item{filteredItems.length !== 1 ? 's' : ''} matching "{itemSearchTerm}"
+            </p>
+          )}
+        </div>
+        
+        {filteredItems.length > 0 ? (
           <div className="space-y-4 pr-2 max-h-[400px] overflow-y-auto">
-            {checklist.items.map((item) => (
+            {filteredItems.map((item) => (
               <div key={item.id} className="card">
                 {/* View mode */}
                 <div className="flex justify-between items-start mb-2">
@@ -609,7 +667,21 @@ const ChecklistDetail = () => {
           </div>
         ) : (
           <p className="text-gray-500 text-center py-8">
-            No items yet. Add your first item above.
+            {itemSearchTerm ? (
+              <>
+                No items found matching "{itemSearchTerm}".
+                <button
+                  onClick={() => setItemSearchTerm('')}
+                  className="block mx-auto mt-2 text-gray-900 hover:text-gray-700 font-medium underline"
+                >
+                  Clear search
+                </button>
+              </>
+            ) : checklist.items && checklist.items.length > 0 ? (
+              'No items match your search.'
+            ) : (
+              'No items yet. Add your first item above.'
+            )}
           </p>
         )}
       </div>

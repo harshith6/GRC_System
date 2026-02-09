@@ -35,15 +35,16 @@ class RegisterView(generics.CreateAPIView):
             
             # Return success response with user data and token
             return Response({
+                'success': True,
                 'user': UserSerializer(user).data,
                 'token': token,
                 'message': 'User registered successfully'
             }, status=status.HTTP_201_CREATED)
         except Exception as e:
-            return Response(
-                {'error': str(e)},
-                status=status.HTTP_400_BAD_REQUEST
-            )
+            return Response({
+                'success': False,
+                'error': str(e)
+            }, status=status.HTTP_400_BAD_REQUEST)
 
 
 class LoginView(APIView):
@@ -81,15 +82,16 @@ class LoginView(APIView):
             
             # Return success response
             return Response({
+                'success': True,
                 'user': UserSerializer(user).data,
                 'token': token,
                 'message': 'Login successful'
             }, status=status.HTTP_200_OK)
         except Exception as e:
-            return Response(
-                {'error': str(e)},
-                status=status.HTTP_401_UNAUTHORIZED
-            )
+            return Response({
+                'success': False,
+                'error': str(e)
+            }, status=status.HTTP_401_UNAUTHORIZED)
 
 
 class LogoutView(APIView):
@@ -104,15 +106,15 @@ class LogoutView(APIView):
             service = AuthenticationService()
             service.logout_user(request.user)
             
-            return Response(
-                {'message': 'Logout successful'},
-                status=status.HTTP_200_OK
-            )
+            return Response({
+                'success': True,
+                'message': 'Logout successful'
+            }, status=status.HTTP_200_OK)
         except Exception as e:
-            return Response(
-                {'error': str(e)},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR
-            )
+            return Response({
+                'success': False,
+                'error': str(e)
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 class CurrentUserView(APIView):
@@ -123,4 +125,7 @@ class CurrentUserView(APIView):
     def get(self, request):
     
         serializer = UserSerializer(request.user)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response({
+            'success': True,
+            'user': serializer.data
+        }, status=status.HTTP_200_OK)
