@@ -114,11 +114,36 @@ const EditChecklist = () => {
     } catch (err) {
       console.error("Error updating checklist:", err);
       if (err.response?.data) {
-        if (typeof err.response.data === "object" && !err.response.data.error) {
-          setErrors(err.response.data);
-        } else {
+        const errorData = err.response.data;
+        
+        // Handle array of error messages
+        if (Array.isArray(errorData)) {
           setErrors({
-            general: err.response.data.error || "Failed to update checklist",
+            general: errorData.join(", "),
+          });
+        }
+        // Handle non_field_errors
+        else if (errorData.non_field_errors) {
+          setErrors({
+            general: Array.isArray(errorData.non_field_errors)
+              ? errorData.non_field_errors.join(", ")
+              : errorData.non_field_errors,
+          });
+        }
+        // Handle field-specific errors
+        else if (typeof errorData === "object" && !errorData.error && !errorData.detail) {
+          setErrors(errorData);
+        }
+        // Handle detail or error message
+        else if (errorData.detail || errorData.error) {
+          setErrors({
+            general: errorData.detail || errorData.error,
+          });
+        }
+        // Fallback
+        else {
+          setErrors({
+            general: "Failed to update checklist",
           });
         }
       } else if (!err.response) {

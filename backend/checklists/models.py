@@ -82,7 +82,8 @@ class Checklist(models.Model):
         total_items = self.items.count()
         
         if total_items == 0:
-            return 0.0
+            # If no items, return 100% if checklist is completed, otherwise 0%
+            return 100.0 if self.status == 'completed' else 0.0
         
         # Count items that are completed or not applicable
         completed_items = self.items.filter(

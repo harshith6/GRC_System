@@ -4,12 +4,14 @@ import { checklistAPI } from '../services/api';
 import LoadingSpinner from '../components/LoadingSpinner';
 import StatusBadge from '../components/StatusBadge';
 import Modal from '../components/Modal';
+import { SuccessAlert } from '../components/ErrorAlert';
 
 const ChecklistList = () => {
   const navigate = useNavigate();
   const [checklists, setChecklists] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [successMessage, setSuccessMessage] = useState('');
   const [filter, setFilter] = useState('all'); // all, draft, active, completed
   const [searchTerm, setSearchTerm] = useState('');
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -53,6 +55,8 @@ const ChecklistList = () => {
       await checklistAPI.delete(deleteConfirmModal.checklistId);
       setChecklists(checklists.filter(c => c.id !== deleteConfirmModal.checklistId));
       setDeleteConfirmModal({ isOpen: false, checklistId: null, checklistName: '' });
+      setSuccessMessage('Checklist deleted successfully!');
+      setTimeout(() => setSuccessMessage(''), 3000);
     } catch (err) {
       console.error('Error deleting checklist:', err);
       setError('Failed to delete checklist');
@@ -92,10 +96,43 @@ const ChecklistList = () => {
     } catch (err) {
       console.error('Error creating checklist:', err);
       if (err.response?.data) {
-        if (typeof err.response.data === 'object') {
-          setFormErrors(err.response.data);
-        } else {
-          setFormErrors({ general: err.response.data.error || 'Failed to create checklist' });
+        const errorData = err.response.data;
+        
+        // Handle array of error messages
+        if (Array.isArray(errorData)) {
+          setFormErrors({
+            general: errorData.join(", "),
+          });
+        }
+        // Handle non_field_errors
+        else if (errorData.non_field_errors) {
+          setFormErrors({
+            general: Array.isArray(errorData.non_field_errors)
+              ? errorData.non_field_errors.join(", ")
+              : errorData.non_field_errors,
+          });
+        }
+        // Handle field-specific errors
+        else if (typeof errorData === 'object' && !errorData.error && !errorData.detail) {
+          const fieldErrors = {};
+          Object.keys(errorData).forEach((field) => {
+            fieldErrors[field] = Array.isArray(errorData[field])
+              ? errorData[field][0]
+              : errorData[field];
+          });
+          setFormErrors(fieldErrors);
+        }
+        // Handle detail or error message
+        else if (errorData.detail || errorData.error) {
+          setFormErrors({
+            general: errorData.detail || errorData.error,
+          });
+        }
+        // Fallback
+        else {
+          setFormErrors({
+            general: 'Failed to create checklist',
+          });
         }
       } else if (!err.response) {
         setFormErrors({ general: 'Unable to connect to server. Please check if the backend is running.' });
@@ -153,10 +190,37 @@ const ChecklistList = () => {
     } catch (err) {
       console.error('Error updating checklist:', err);
       if (err.response?.data) {
-        if (typeof err.response.data === 'object' && !err.response.data.error) {
-          setFormErrors(err.response.data);
-        } else {
-          setFormErrors({ general: err.response.data.error || 'Failed to update checklist' });
+        const errorData = err.response.data;
+        
+        // Handle array of error messages
+        if (Array.isArray(errorData)) {
+          setFormErrors({
+            general: errorData.join(", "),
+          });
+        }
+        // Handle non_field_errors
+        else if (errorData.non_field_errors) {
+          setFormErrors({
+            general: Array.isArray(errorData.non_field_errors)
+              ? errorData.non_field_errors.join(", ")
+              : errorData.non_field_errors,
+          });
+        }
+        // Handle field-specific errors
+        else if (typeof errorData === 'object' && !errorData.error && !errorData.detail) {
+          setFormErrors(errorData);
+        }
+        // Handle detail or error message
+        else if (errorData.detail || errorData.error) {
+          setFormErrors({
+            general: errorData.detail || errorData.error,
+          });
+        }
+        // Fallback
+        else {
+          setFormErrors({
+            general: 'Failed to update checklist',
+          });
         }
       } else if (!err.response) {
         setFormErrors({ general: 'Unable to connect to server. Please check if the backend is running.' });
@@ -180,6 +244,18 @@ const ChecklistList = () => {
   
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      {/* Success Alert */}
+      {successMessage && (
+        <SuccessAlert message={successMessage} onClose={() => setSuccessMessage('')} />
+      )}
+
+      {/* Error Alert */}
+      {error && (
+        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-6">
+          {error}
+        </div>
+      )}
+
       {/* Header */}
       <div className="flex justify-between items-center mb-8">
         <div>

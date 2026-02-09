@@ -95,7 +95,7 @@ class ChecklistItemRepository:
 
         return ChecklistItem.objects.filter(
             checklist_id=checklist_id
-        ).exclude(status='completed').select_related('checklist')
+        ).exclude(status__in=['completed', 'not-applicable']).select_related('checklist')
     
     def get_completed_items_for_checklist(self, checklist_id):
        

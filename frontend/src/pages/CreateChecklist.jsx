@@ -74,8 +74,23 @@ const CreateChecklist = () => {
       // Handle backend validation errors
       if (err.response?.data) {
         const data = err.response.data;
-        if (typeof data === "object" && !data.error) {
-          // This is DRF's field error format: { field: ['error message'] }
+        
+        // Handle array of error messages (non-field errors)
+        if (Array.isArray(data)) {
+          setErrors({
+            general: data.join(", "),
+          });
+        }
+        // Handle non_field_errors
+        else if (data.non_field_errors) {
+          setErrors({
+            general: Array.isArray(data.non_field_errors)
+              ? data.non_field_errors.join(", ")
+              : data.non_field_errors,
+          });
+        }
+        // Handle DRF's field error format: { field: ['error message'] }
+        else if (typeof data === "object" && !data.error && !data.detail) {
           const fieldErrors = {};
           Object.keys(data).forEach((field) => {
             fieldErrors[field] = Array.isArray(data[field])
@@ -83,16 +98,19 @@ const CreateChecklist = () => {
               : data[field];
           });
           setErrors(fieldErrors);
-        } else if (data.error && data.message) {
-          // This is our custom error format from the exception handler
+        }
+        // Handle detail or error message
+        else if (data.detail || data.error) {
           setErrors({
-            general: `${data.error}: ${data.message}`,
+            general: data.detail || data.error,
           });
-        } else if (data.error) {
-          setErrors({ general: data.error });
-        } else if (typeof data === "string") {
+        }
+        // Handle string response
+        else if (typeof data === "string") {
           setErrors({ general: data });
-        } else {
+        }
+        // Fallback
+        else {
           setErrors({
             general: "Failed to create checklist. Please try again.",
           });

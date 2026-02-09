@@ -119,12 +119,14 @@ class ChecklistService:
         total_items = items.count()
         
         if total_items == 0:
+            # If no items, return 100% if checklist is completed, otherwise 0%
+            completion_pct = 100.0 if checklist.status == 'completed' else 0.0
             return {
                 'total_items': 0,
                 'completed_items': 0,
                 'pending_items': 0,
                 'in_progress_items': 0,
-                'completion_percentage': 0.0
+                'completion_percentage': completion_pct
             }
         
         completed = items.filter(status='completed').count()
