@@ -2,7 +2,6 @@ from django.contrib.auth import authenticate
 from django.contrib.auth.models import User
 from django.db import transaction
 from rest_framework.authtoken.models import Token
-from typing import Dict, Optional, Tuple
 
 from .repositories import UserRepository, TokenRepository
 from checklists.exceptions import ValidationError, PermissionDeniedException
@@ -14,7 +13,7 @@ class UserService:
         self.user_repo = UserRepository()
         self.token_repo = TokenRepository()
     
-    def register_user(self, data: Dict) -> Tuple[User, str]:
+    def register_user(self, data):
        
         # Business rule: Check username length
         username = data.get('username', '')
@@ -56,7 +55,7 @@ class UserService:
         
         return user, token.key
     
-    def update_user_profile(self, user_id: int, data: Dict) -> User:
+    def update_user_profile(self, user_id, data):
         
         user = self.user_repo.get_by_id(user_id)
         if not user:
@@ -77,7 +76,7 @@ class UserService:
         
         return updated_user
     
-    def change_password(self, user_id: int, old_password: str, new_password: str) -> bool:
+    def change_password(self, user_id, old_password, new_password):
        
         user = self.user_repo.get_by_id(user_id)
         if not user:
@@ -104,7 +103,7 @@ class UserService:
         
         return True
     
-    def deactivate_user(self, user_id: int) -> bool:
+    def deactivate_user(self, user_id):
         
         user = self.user_repo.get_by_id(user_id)
         if not user:
@@ -118,7 +117,7 @@ class UserService:
         
         return True
     
-    def activate_user(self, user_id: int) -> bool:
+    def activate_user(self, user_id):
         
         user = self.user_repo.get_by_id(user_id)
         if not user:
@@ -129,7 +128,7 @@ class UserService:
         
         return True
     
-    def get_user_stats(self, user_id: int) -> Dict:
+    def get_user_stats(self, user_id):
         
         user = self.user_repo.get_by_id(user_id)
         if not user:
@@ -156,7 +155,7 @@ class AuthenticationService:
         self.user_repo = UserRepository()
         self.token_repo = TokenRepository()
     
-    def authenticate_user(self, username: str, password: str) -> Tuple[User, str]:
+    def authenticate_user(self, username, password):
         
         # Business rule: Check required fields
         if not username or not password:
@@ -178,18 +177,18 @@ class AuthenticationService:
         
         return user, token.key
     
-    def logout_user(self, user: User) -> bool:
+    def logout_user(self, user):
         
         return self.token_repo.delete_token(user)
     
-    def validate_token(self, token_key: str) -> Optional[User]:
+    def validate_token(self, token_key):
         
         token = self.token_repo.get_by_key(token_key)
         if token:
             return token.user
         return None
     
-    def refresh_token(self, user: User) -> str:
+    def refresh_token(self, user):
         
         with transaction.atomic():
             # Delete old token
@@ -199,7 +198,7 @@ class AuthenticationService:
         
         return token.key
     
-    def get_active_sessions(self, user: User) -> Dict:
+    def get_active_sessions(self, user):
         
         token = self.token_repo.get_by_user(user)
         

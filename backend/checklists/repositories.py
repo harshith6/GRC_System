@@ -1,5 +1,4 @@
 from django.db.models import QuerySet, Count, Q, Prefetch
-from typing import Optional, List
 from datetime import datetime
 from django.utils import timezone
 
@@ -12,7 +11,7 @@ class ChecklistRepository:
 
         return Checklist.objects.select_related('created_by').prefetch_related('items').all()
     
-    def get_by_id(self, checklist_id: int) -> Optional[Checklist]:
+    def get_by_id(self, checklist_id):
 
         try:
             return Checklist.objects.select_related('created_by').prefetch_related('items').get(id=checklist_id)
@@ -37,14 +36,14 @@ class ChecklistRepository:
        
         return Checklist.objects.create(**kwargs)
     
-    def update(self, checklist: Checklist, **kwargs):
+    def update(self, checklist, **kwargs):
 
         for key, value in kwargs.items():
             setattr(checklist, key, value)
         checklist.save()
         return checklist
     
-    def delete(self, checklist_id: int) -> bool:
+    def delete(self, checklist_id):
         
         try:
             checklist = Checklist.objects.get(id=checklist_id)
@@ -98,7 +97,7 @@ class ChecklistItemRepository:
             checklist_id=checklist_id
         ).exclude(status='completed').select_related('checklist')
     
-    def get_completed_items_for_checklist(self, checklist_id: int):
+    def get_completed_items_for_checklist(self, checklist_id):
        
         return ChecklistItem.objects.filter(
             checklist_id=checklist_id,
@@ -109,7 +108,7 @@ class ChecklistItemRepository:
     
         return ChecklistItem.objects.create(**kwargs)
     
-    def update(self, item: ChecklistItem, **kwargs):
+    def update(self, item, **kwargs):
         
         for key, value in kwargs.items():
             setattr(item, key, value)

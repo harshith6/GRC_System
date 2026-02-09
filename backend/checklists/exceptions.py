@@ -11,26 +11,22 @@ logger = logging.getLogger(__name__)
 
 class ValidationError(Exception):
 
-    def __init__(self, message: str, field: str = None):
+    def __init__(self, message, field=None):
         self.message = message
         self.field = field
         super().__init__(self.message)
 
 
 class NotFoundException(Exception):
-    """
-    Exception raised when a requested resource is not found.
-    """
-    def __init__(self, resource: str, identifier):
+    
+    def __init__(self, resource, identifier):
         self.message = f"{resource} with id {identifier} not found"
         super().__init__(self.message)
 
 
 class PermissionDeniedException(Exception):
-    """
-    Exception raised when user doesn't have permission for an operation.
-    """
-    def __init__(self, message: str = "You don't have permission to perform this action"):
+   
+    def __init__(self, message="You don't have permission to perform this action"):
         self.message = message
         super().__init__(self.message)
 

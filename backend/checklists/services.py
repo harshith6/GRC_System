@@ -1,12 +1,11 @@
 from django.db import transaction
 from django.utils import timezone
-from django.db.models import Count, Q, Avg
-from typing import List, Dict, Optional
 from datetime import datetime
 
 from .models import Checklist, ChecklistItem
 from .repositories import ChecklistRepository, ChecklistItemRepository
 from .exceptions import ValidationError
+from django.utils import timezone
 
 
 class ChecklistService:
@@ -23,11 +22,11 @@ class ChecklistService:
         
         return self.checklist_repo.get_by_user(user)
     
-    def get_checklist_by_id(self, checklist_id: int) -> Optional[Checklist]:
+    def get_checklist_by_id(self, checklist_id):
         
         return self.checklist_repo.get_by_id(checklist_id)
     
-    def get_checklist_by_id_for_user(self, checklist_id: int, user) -> Optional[Checklist]:
+    def get_checklist_by_id_for_user(self, checklist_id, user):
        
         checklist = self.checklist_repo.get_by_id(checklist_id)
         if not checklist:
@@ -97,7 +96,7 @@ class ChecklistService:
         
         return updated_checklist
     
-    def delete_checklist(self, checklist_id: int, user) -> bool:
+    def delete_checklist(self, checklist_id, user):
         
         checklist = self.get_checklist_by_id_for_user(checklist_id, user)
         
@@ -110,7 +109,7 @@ class ChecklistService:
             # Delete the checklist
             return self.checklist_repo.delete(checklist_id)
     
-    def get_checklist_stats(self, checklist_id: int) -> Dict:
+    def get_checklist_stats(self, checklist_id):
         
         checklist = self.checklist_repo.get_by_id(checklist_id)
         if not checklist:
@@ -158,8 +157,7 @@ class ChecklistService:
         pending_items = user_items.filter(status='pending').count()
         in_progress_items = user_items.filter(status='in-progress').count()
         
-        # Get overdue checklists for this user only
-        from django.utils import timezone
+    
         today = timezone.now().date()
         overdue_checklists = checklists.filter(
             due_date__lt=today,
@@ -196,11 +194,11 @@ class ChecklistItemService:
         
         return self.item_repo.get_all()
     
-    def get_item_by_id(self, item_id: int) -> Optional[ChecklistItem]:
+    def get_item_by_id(self, item_id):
        
         return self.item_repo.get_by_id(item_id)
     
-    def get_items_by_checklist(self, checklist_id: int):
+    def get_items_by_checklist(self, checklist_id):
         
         checklist = self.checklist_repo.get_by_id(checklist_id)
         if not checklist:
@@ -230,7 +228,7 @@ class ChecklistItemService:
         
         return item
     
-    def update_item(self, item_id: int, data: Dict) -> ChecklistItem:
+    def update_item(self, item_id, data):
         
         item = self.item_repo.get_by_id(item_id)
         if not item:
