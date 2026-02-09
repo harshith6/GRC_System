@@ -23,7 +23,7 @@ const ChecklistDetail = () => {
     itemTitle: "",
   });
   const [deleteChecklistModal, setDeleteChecklistModal] = useState(false);
-  const [itemSearchTerm, setItemSearchTerm] = useState(''); // Search items
+  const [itemSearchTerm, setItemSearchTerm] = useState(""); // Search items
 
   // New item form data
   const [newItem, setNewItem] = useState({
@@ -117,10 +117,10 @@ const ChecklistDetail = () => {
       fetchChecklist(); // Refresh
     } catch (err) {
       console.error("Error updating checklist status:", err);
-      
+
       if (err.response?.data) {
         const errorData = err.response.data;
-        
+
         // Handle array of error messages
         if (Array.isArray(errorData)) {
           setError(errorData.join(", "));
@@ -130,7 +130,7 @@ const ChecklistDetail = () => {
           setError(
             Array.isArray(errorData.non_field_errors)
               ? errorData.non_field_errors.join(", ")
-              : errorData.non_field_errors
+              : errorData.non_field_errors,
           );
         }
         // Handle detail or error message
@@ -144,7 +144,7 @@ const ChecklistDetail = () => {
       } else {
         setError("Failed to update checklist status");
       }
-      
+
       setTimeout(() => setError(""), 5000);
     }
   };
@@ -251,15 +251,18 @@ const ChecklistDetail = () => {
   };
 
   // Filter items based on search term
-  const filteredItems = checklist?.items?.filter(item => {
-    if (!itemSearchTerm) return true;
-    const searchLower = itemSearchTerm.toLowerCase();
-    return (
-      item.title.toLowerCase().includes(searchLower) ||
-      (item.description && item.description.toLowerCase().includes(searchLower)) ||
-      (item.assigned_owner && item.assigned_owner.toLowerCase().includes(searchLower))
-    );
-  }) || [];
+  const filteredItems =
+    checklist?.items?.filter((item) => {
+      if (!itemSearchTerm) return true;
+      const searchLower = itemSearchTerm.toLowerCase();
+      return (
+        item.title.toLowerCase().includes(searchLower) ||
+        (item.description &&
+          item.description.toLowerCase().includes(searchLower)) ||
+        (item.assigned_owner &&
+          item.assigned_owner.toLowerCase().includes(searchLower))
+      );
+    }) || [];
 
   if (loading) return <LoadingSpinner />;
   if (error) return <div className="p-8 text-red-600">{error}</div>;
@@ -313,7 +316,10 @@ const ChecklistDetail = () => {
           <div>
             <span className="text-sm text-gray-600">Progress:</span>
             <p className="font-medium">
-              {checklist.completion_percentage != null ? checklist.completion_percentage.toFixed(0) : 0}%
+              {checklist.completion_percentage != null
+                ? checklist.completion_percentage.toFixed(0)
+                : 0}
+              %
             </p>
           </div>
         </div>
@@ -587,7 +593,7 @@ const ChecklistDetail = () => {
       {/* Items list */}
       <div>
         <h2 className="text-2xl font-semibold text-gray-900 mb-4">Items</h2>
-        
+
         {/* Items Search Bar */}
         <div className="mb-4">
           <div className="relative">
@@ -613,10 +619,14 @@ const ChecklistDetail = () => {
             />
             {itemSearchTerm && (
               <button
-                onClick={() => setItemSearchTerm('')}
+                onClick={() => setItemSearchTerm("")}
                 className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
               >
-                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                <svg
+                  className="w-5 h-5"
+                  fill="currentColor"
+                  viewBox="0 0 20 20"
+                >
                   <path
                     fillRule="evenodd"
                     d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
@@ -628,11 +638,13 @@ const ChecklistDetail = () => {
           </div>
           {itemSearchTerm && (
             <p className="text-sm text-gray-600 mt-2">
-              Found {filteredItems.length} item{filteredItems.length !== 1 ? 's' : ''} matching "{itemSearchTerm}"
+              Found {filteredItems.length} item
+              {filteredItems.length !== 1 ? "s" : ""} matching "{itemSearchTerm}
+              "
             </p>
           )}
         </div>
-        
+
         {filteredItems.length > 0 ? (
           <div className="space-y-4 pr-2 max-h-[400px] overflow-y-auto">
             {filteredItems.map((item) => (
@@ -732,16 +744,16 @@ const ChecklistDetail = () => {
               <>
                 No items found matching "{itemSearchTerm}".
                 <button
-                  onClick={() => setItemSearchTerm('')}
+                  onClick={() => setItemSearchTerm("")}
                   className="block mx-auto mt-2 text-gray-900 hover:text-gray-700 font-medium underline"
                 >
                   Clear search
                 </button>
               </>
             ) : checklist.items && checklist.items.length > 0 ? (
-              'No items match your search.'
+              "No items match your search."
             ) : (
-              'No items yet. Add your first item above.'
+              "No items yet. Add your first item above."
             )}
           </p>
         )}
