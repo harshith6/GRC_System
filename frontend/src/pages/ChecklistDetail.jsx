@@ -106,6 +106,46 @@ const ChecklistDetail = () => {
     }
   };
 
+  const handleChecklistStatusChange = async (newStatus) => {
+    try {
+      await checklistAPI.patch(id, { status: newStatus });
+      setSuccessMessage("Checklist status updated successfully!");
+      setTimeout(() => setSuccessMessage(null), 3000);
+      fetchChecklist(); // Refresh
+    } catch (err) {
+      console.error("Error updating checklist status:", err);
+      
+      if (err.response?.data) {
+        const errorData = err.response.data;
+        
+        // Handle array of error messages
+        if (Array.isArray(errorData)) {
+          setError(errorData.join(", "));
+        }
+        // Handle non_field_errors
+        else if (errorData.non_field_errors) {
+          setError(
+            Array.isArray(errorData.non_field_errors)
+              ? errorData.non_field_errors.join(", ")
+              : errorData.non_field_errors
+          );
+        }
+        // Handle detail or error message
+        else if (errorData.detail || errorData.error) {
+          setError(errorData.detail || errorData.error);
+        }
+        // Fallback
+        else {
+          setError("Failed to update checklist status");
+        }
+      } else {
+        setError("Failed to update checklist status");
+      }
+      
+      setTimeout(() => setError(""), 5000);
+    }
+  };
+
   const handleEditItem = (item) => {
     setEditingItem({
       id: item.id,
@@ -275,7 +315,25 @@ const ChecklistDetail = () => {
           </div>
         </div>
 
-        <div className="flex gap-2">
+        <div className="flex gap-2 items-center flex-wrap">
+          <div className="flex items-center gap-2">
+            <label className="text-sm font-medium text-gray-700">Status:</label>
+            <select
+              value={checklist.status}
+              onChange={(e) => handleChecklistStatusChange(e.target.value)}
+              className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+            >
+              <option value="draft">Draft</option>
+              <option value="active">Active</option>
+              <option value="completed">Completed</option>
+            </select>
+          </div>
+          <Link
+            to={`/checklists/${id}/edit`}
+            className="btn btn-secondary text-sm"
+          >
+            Edit Details
+          </Link>
           <button
             onClick={() => setShowAddItem(true)}
             className="btn btn-primary"

@@ -15,7 +15,7 @@ const ChecklistList = () => {
   const [filter, setFilter] = useState('all'); // all, draft, active, completed
   const [searchTerm, setSearchTerm] = useState('');
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-  const [formData, setFormData] = useState({ name: '', description: '', due_date: '', status: 'draft' });
+  const [formData, setFormData] = useState({ name: '', description: '', due_date: '' });
   const [formErrors, setFormErrors] = useState({});
   const [submitting, setSubmitting] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -66,6 +66,49 @@ const ChecklistList = () => {
       setDeleteConfirmModal({ isOpen: false, checklistId: null, checklistName: '' });
     }
   };
+
+  const handleStatusChange = async (e, checklistId, currentStatus) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const newStatus = e.target.value;
+    
+    // Optimistically update UI
+    const oldChecklists = [...checklists];
+    setChecklists(checklists.map(c => 
+      c.id === checklistId ? { ...c, status: newStatus } : c
+    ));
+    
+    try {
+      await checklistAPI.patch(checklistId, { status: newStatus });
+      setSuccessMessage('Status updated successfully!');
+      setTimeout(() => setSuccessMessage(''), 3000);
+      fetchChecklists(); // Refresh to get updated data
+    } catch (err) {
+      console.error('Error updating status:', err);
+      // Revert on error
+      setChecklists(oldChecklists);
+      
+      if (err.response?.data) {
+        const errorData = err.response.data;
+        if (Array.isArray(errorData)) {
+          setError(errorData.join(", "));
+        } else if (errorData.non_field_errors) {
+          setError(
+            Array.isArray(errorData.non_field_errors)
+              ? errorData.non_field_errors.join(", ")
+              : errorData.non_field_errors
+          );
+        } else if (errorData.detail || errorData.error) {
+          setError(errorData.detail || errorData.error);
+        } else {
+          setError('Failed to update status');
+        }
+      } else {
+        setError('Failed to update status');
+      }
+      setTimeout(() => setError(''), 5000);
+    }
+  };
   
   const handleCreateSubmit = async (e) => {
     e.preventDefault();
@@ -94,7 +137,7 @@ const ChecklistList = () => {
     try {
       const response = await checklistAPI.create(formData);
       setIsCreateModalOpen(false);
-      setFormData({ name: '', description: '', due_date: '', status: 'draft' });
+      setFormData({ name: '', description: '', due_date: '' });
       navigate(`/checklists/${response.data.id}`);
     } catch (err) {
       console.error('Error creating checklist:', err);
@@ -154,8 +197,7 @@ const ChecklistList = () => {
     setFormData({
       name: checklist.name,
       description: checklist.description || '',
-      due_date: checklist.due_date || '',
-      status: checklist.status
+      due_date: checklist.due_date || ''
     });
     setIsEditModalOpen(true);
   };
@@ -188,7 +230,7 @@ const ChecklistList = () => {
       await checklistAPI.update(editingChecklist.id, formData);
       setIsEditModalOpen(false);
       setEditingChecklist(null);
-      setFormData({ name: '', description: '', due_date: '', status: 'draft' });
+      setFormData({ name: '', description: '', due_date: '' });
       fetchChecklists(); // Refresh list
     } catch (err) {
       console.error('Error updating checklist:', err);
@@ -318,14 +360,6 @@ const ChecklistList = () => {
             />
             {formErrors.due_date && <p className="mt-1 text-sm text-red-600">{formErrors.due_date}</p>}
           </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
-            <select className="input" value={formData.status} onChange={(e) => setFormData({ ...formData, status: e.target.value })}>
-              <option value="draft">Draft</option>
-              <option value="active">Active</option>
-              <option value="completed">Completed</option>
-            </select>
-          </div>
           <div className="flex gap-3 pt-4">
             <button type="submit" className="btn btn-primary flex-1" disabled={submitting}>
               {submitting ? 'Creating...' : 'Create Checklist'}
@@ -384,14 +418,6 @@ const ChecklistList = () => {
               required
             />
             {formErrors.due_date && <p className="mt-1 text-sm text-red-600">{formErrors.due_date}</p>}
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
-            <select className="input" value={formData.status} onChange={(e) => setFormData({ ...formData, status: e.target.value })}>
-              <option value="draft">Draft</option>
-              <option value="active">Active</option>
-              <option value="completed">Completed</option>
-            </select>
           </div>
           <div className="flex gap-3 pt-4">
             <button type="submit" className="btn btn-primary flex-1" disabled={submitting}>
@@ -488,7 +514,6 @@ const ChecklistList = () => {
                   <h3 className="text-lg font-semibold text-gray-900 flex-1">
                     {checklist.name}
                   </h3>
-                  <StatusBadge status={checklist.status} />
                 </div>
               
               {checklist.description && (
@@ -526,23 +551,38 @@ const ChecklistList = () => {
               )}
               </Link>
               
-              {/* Action buttons */}
-              <div className="mt-4 pt-4 border-t border-gray-200 flex gap-2">
-                <button
-                  onClick={(e) => handleEditClick(e, checklist)}
-                  className="flex-1 btn btn-secondary text-sm py-2"
-                >
-                  Edit
-                </button>
-                <button
-                  onClick={(e) => handleDeleteClick(e, checklist)}
-                  className="flex-1 btn bg-red-600 hover:bg-red-700 text-white text-sm py-2 shadow-sm focus:ring-red-500 flex items-center justify-center gap-1"
-                >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                  </svg>
-                  Delete
-                </button>
+              {/* Status and Action buttons */}
+              <div className="mt-4 pt-4 border-t border-gray-200 space-y-3">
+                <div className="flex items-center gap-2">
+                  <label className="text-sm font-medium text-gray-700 whitespace-nowrap">Status:</label>
+                  <select
+                    value={checklist.status}
+                    onClick={(e) => e.preventDefault()}
+                    onChange={(e) => handleStatusChange(e, checklist.id, checklist.status)}
+                    className="flex-1 border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                  >
+                    <option value="draft">Draft</option>
+                    <option value="active">Active</option>
+                    <option value="completed">Completed</option>
+                  </select>
+                </div>
+                <div className="flex gap-2">
+                  <button
+                    onClick={(e) => handleEditClick(e, checklist)}
+                    className="flex-1 btn btn-secondary text-sm py-2"
+                  >
+                    Edit
+                  </button>
+                  <button
+                    onClick={(e) => handleDeleteClick(e, checklist)}
+                    className="flex-1 btn bg-red-600 hover:bg-red-700 text-white text-sm py-2 shadow-sm focus:ring-red-500 flex items-center justify-center gap-1"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    </svg>
+                    Delete
+                  </button>
+                </div>
               </div>
             </div>
           ))}        </div>
