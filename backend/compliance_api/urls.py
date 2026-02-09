@@ -26,8 +26,11 @@ schema_view = get_schema_view(
         - Dashboard statistics
         
         **Authentication**: Most endpoints require token-based authentication.
-        Use the /api/auth/login/ endpoint to obtain a token, then include it in 
-        the Authorization header: `Token <your-token>`
+        
+        **Steps to get started:**
+        1. Use POST /api/auth/login/ with username and password to get your token
+        2. Click "Authorize" button and enter: Token YOUR_TOKEN_HERE
+        3. Try other endpoints with your token
         """,
         terms_of_service="https://www.example.com/terms/",
         contact=openapi.Contact(email="contact@compliance.local"),

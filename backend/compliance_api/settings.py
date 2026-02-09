@@ -119,12 +119,14 @@ AUTH_PASSWORD_VALIDATORS = [
 # Settings specific to Django REST Framework
 REST_FRAMEWORK = {
     # Authentication classes - how users prove their identity
+    # TokenAuthentication first so it's the primary method
     'DEFAULT_AUTHENTICATION_CLASSES': [
-        'rest_framework.authentication.TokenAuthentication',  # Token-based auth
-        'rest_framework.authentication.SessionAuthentication',  # Session-based auth for browsable API
+        'rest_framework.authentication.TokenAuthentication',  # Token-based auth (PRIMARY)
     ],
     
     # Permission classes - who can access what
+    # Default is IsAuthenticated for security
+    # Individual views override this as needed for public endpoints
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.IsAuthenticated',  # Require authentication by default
     ],

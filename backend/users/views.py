@@ -10,6 +10,7 @@ from rest_framework import status, generics
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.permissions import AllowAny, IsAuthenticated
+from drf_yasg.utils import swagger_auto_schema
 
 from .serializers import RegisterSerializer, LoginSerializer, UserSerializer
 from .services import UserService, AuthenticationService
@@ -52,6 +53,10 @@ class LoginView(APIView):
     # Allow anyone to access this endpoint
     permission_classes = [AllowAny]
     
+    # Tell Swagger what fields this endpoint accepts
+    serializer_class = LoginSerializer
+    
+    @swagger_auto_schema(request_body=LoginSerializer)
     def post(self, request):
         """
         Handle POST request to authenticate a user using service layer.
@@ -99,6 +104,7 @@ class LogoutView(APIView):
     # Require authentication to logout
     permission_classes = [IsAuthenticated]
     
+    @swagger_auto_schema(request_body=None)
     def post(self, request):
     
         try:
@@ -122,10 +128,25 @@ class CurrentUserView(APIView):
     # Require authentication
     permission_classes = [IsAuthenticated]
     
+    @swagger_auto_schema(request_body=None)
     def get(self, request):
     
         serializer = UserSerializer(request.user)
         return Response({
             'success': True,
             'user': serializer.data
+        }, status=status.HTTP_200_OK)
+
+class HealthCheckView(APIView):
+    """
+    Simple health check endpoint to verify API is running.
+    Accessible without authentication.
+    """
+    permission_classes = [AllowAny]
+    
+    @swagger_auto_schema(request_body=None)
+    def get(self, request):
+        return Response({
+            'success': True,
+            'message': 'API is running'
         }, status=status.HTTP_200_OK)

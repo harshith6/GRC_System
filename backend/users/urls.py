@@ -1,8 +1,11 @@
 from django.urls import path
-from .views import RegisterView, LoginView, LogoutView, CurrentUserView
+from .views import RegisterView, LoginView, LogoutView, CurrentUserView, HealthCheckView
 
 #  Authentication & User URLs 
 urlpatterns = [
+    # GET /api/auth/health/ - Health check (no auth required)
+    path('health/', HealthCheckView.as_view(), name='health-check'),
+    
     # POST /api/auth/register/ - Register new user
     path('register/', RegisterView.as_view(), name='register'),
     

@@ -20,6 +20,10 @@ class ChecklistRepository:
     
     def get_by_user(self, user):
         
+        # Return empty queryset if user is not authenticated
+        if not user or not user.is_authenticated:
+            return Checklist.objects.none()
+        
         return Checklist.objects.filter(created_by=user).select_related('created_by').prefetch_related('items')
     
     def get_by_status(self, status):
