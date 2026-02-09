@@ -155,18 +155,21 @@ class AuthenticationService:
         self.user_repo = UserRepository()
         self.token_repo = TokenRepository()
     
-    def authenticate_user(self, username, password):
+    def authenticate_user(self, email, password):
         
         # Business rule: Check required fields
-        if not username or not password:
-            raise ValidationError("Username and password are required")
+        if not email or not password:
+            raise ValidationError("Email and password are required")
         
-        # Authenticate using Django's authenticate
-        user = authenticate(username=username, password=password)
-        
-        if user is None:
-            # Authentication failed
-            raise ValidationError("Invalid username or password")
+        # Find user by email, then authenticate with password
+        try:
+            user = User.objects.get(email=email)
+            # Verify password
+            if not user.check_password(password):
+                raise ValidationError("Invalid email or password")
+        except User.DoesNotExist:
+            # User not found
+            raise ValidationError("Invalid email or password")
         
         # Business rule: Check if account is active
         if not user.is_active:

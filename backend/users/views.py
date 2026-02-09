@@ -62,7 +62,7 @@ class LoginView(APIView):
         Handle POST request to authenticate a user using service layer.
         
         Steps:
-        1. Validate username and password via serializer
+        1. Validate email and password via serializer
         2. Call authentication service to verify credentials
         3. Service handles all business logic (validation, activation check)
         4. Return user data and token
@@ -78,12 +78,12 @@ class LoginView(APIView):
         
         try:
             # Extract credentials
-            username = serializer.validated_data['username']
+            email = serializer.validated_data['email']
             password = serializer.validated_data['password']
             
             # Authenticate through service layer
             service = AuthenticationService()
-            user, token = service.authenticate_user(username, password)
+            user, token = service.authenticate_user(email, password)
             
             # Return success response
             return Response({
@@ -93,6 +93,7 @@ class LoginView(APIView):
                 'message': 'Login successful'
             }, status=status.HTTP_200_OK)
         except Exception as e:
+            # Return authentication error with proper error message
             return Response({
                 'success': False,
                 'error': str(e)
