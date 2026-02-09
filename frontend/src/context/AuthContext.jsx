@@ -26,7 +26,7 @@ export const AuthProvider = ({ children }) => {
       try {
         // Validate the token by fetching current user
         const response = await authAPI.getCurrentUser();
-        setUser(response.data);
+        setUser(response.data.user || response.data);
         setIsAuthenticated(true);
       } catch (error) {
         // Token is invalid, clear it

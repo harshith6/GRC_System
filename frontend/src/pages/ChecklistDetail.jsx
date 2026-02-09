@@ -270,7 +270,7 @@ const ChecklistDetail = () => {
           <div>
             <span className="text-sm text-gray-600">Progress:</span>
             <p className="font-medium">
-              {checklist.completion_percentage?.toFixed(0)}%
+              {checklist.completion_percentage != null ? checklist.completion_percentage.toFixed(0) : 0}%
             </p>
           </div>
         </div>

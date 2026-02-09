@@ -19,7 +19,7 @@ const Dashboard = () => {
     try {
       setError(null); // Clear any previous errors
       const response = await dashboardAPI.getStats();
-      setStats(response.data);
+      setStats(response.data.stats || response.data);
     } catch (err) {
       console.error('Error fetching stats:', err);
       setError(err); // Pass the full error object to ErrorAlert
