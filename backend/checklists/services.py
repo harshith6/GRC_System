@@ -166,9 +166,11 @@ class ChecklistService:
             status__in=['draft', 'active']
         ).count()
         
-        # Calculate average completion percentage for user's checklists
-        if total_items > 0:
-            avg_completion = round((completed_items / total_items) * 100, 2)
+        # Calculate average completion percentage across all checklists
+        # Each checklist's completion is based on its items + its own status
+        if total_checklists > 0:
+            total_completion = sum(checklist.get_completion_percentage() for checklist in checklists)
+            avg_completion = round(total_completion / total_checklists, 2)
         else:
             avg_completion = 0.0
         

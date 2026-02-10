@@ -14,6 +14,7 @@ const ChecklistList = () => {
   const [error, setError] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
   const [filter, setFilter] = useState("all"); // all, draft, active, completed
+  const [sortBy, setSortBy] = useState("created_at_desc"); // created_at_desc, created_at_asc, due_date_asc, due_date_desc
   const [searchTerm, setSearchTerm] = useState("");
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [formData, setFormData] = useState({
@@ -324,12 +325,40 @@ const ChecklistList = () => {
     }
   };
 
-  // Filter checklists based on search term
-  const filteredChecklists = checklists.filter(
-    (checklist) =>
-      checklist.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      checklist.description.toLowerCase().includes(searchTerm.toLowerCase()),
-  );
+  // Filter and sort checklists
+  const filteredChecklists = checklists
+    .filter((checklist) => {
+      // Filter by status
+      if (filter !== "all" && checklist.status !== filter) {
+        return false;
+      }
+      // Filter by search term
+      return (
+        checklist.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        checklist.description.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    })
+    .sort((a, b) => {
+      // Sort based on sortBy
+      switch (sortBy) {
+        case "created_at_asc":
+          return new Date(a.created_at) - new Date(b.created_at);
+        case "created_at_desc":
+          return new Date(b.created_at) - new Date(a.created_at);
+        case "due_date_asc":
+          return (
+            new Date(a.due_date || "2099-12-31") -
+            new Date(b.due_date || "2099-12-31")
+          );
+        case "due_date_desc":
+          return (
+            new Date(b.due_date || "2099-12-31") -
+            new Date(a.due_date || "2099-12-31")
+          );
+        default:
+          return 0;
+      }
+    });
 
   if (loading) {
     return <LoadingSpinner message="Loading checklists..." />;
@@ -581,6 +610,18 @@ const ChecklistList = () => {
             Completed
           </button>
         </div>
+
+        {/* Sort dropdown */}
+        <select
+          value={sortBy}
+          onChange={(e) => setSortBy(e.target.value)}
+          className="px-4 py-2 border border-gray-300 rounded-lg font-medium text-gray-700 hover:bg-gray-50 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+        >
+          <option value="created_at_desc">Newest First</option>
+          <option value="created_at_asc">Oldest First</option>
+          <option value="due_date_asc">Due Date (Soonest)</option>
+          <option value="due_date_desc">Due Date (Latest)</option>
+        </select>
 
         {/* Search */}
         <input
