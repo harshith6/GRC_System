@@ -684,7 +684,7 @@ const ChecklistDetail = () => {
                   {item.completed_at && (
                     <span>
                       ✓ Completed:{" "}
-                      {new Date(item.completed_at).toLocaleDateString()}
+                      {new Date(item.completed_at).toLocaleString()}
                     </span>
                   )}
                 </div>
